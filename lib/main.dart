@@ -35,7 +35,7 @@ class SmartAttendanceApp extends StatelessWidget {
           headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
           titleLarge: TextStyle(fontWeight: FontWeight.w600, color: Colors.blueGrey),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
