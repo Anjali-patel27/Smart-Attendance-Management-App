@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import 'login_screen.dart';
 import 'qr_generator_screen.dart';
 import '../services/location_service.dart';
+import 'admin_dashboard.dart';
 
 class InstructorDashboard extends StatelessWidget {
   final _courseController = TextEditingController();
@@ -19,6 +20,13 @@ class InstructorDashboard extends StatelessWidget {
       appBar: AppBar(
         title: Text('Instructor : ${user?.name}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.analytics),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+            },
+            tooltip: 'View Reports',
+          ),
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () async {
