@@ -22,11 +22,6 @@ class QRGeneratorScreen extends StatelessWidget {
               version: QrVersions.auto,
               size: 300.0,
             ),
-            const SizedBox(height: 20),
-            Text(
-              'SESSION CODE: ${session.sessionCode}',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
-            ),
             const SizedBox(height: 10),
             Text(
               'Valid until: ${session.endTime.hour}:${session.endTime.minute}',
