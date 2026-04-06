@@ -15,42 +15,41 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   bool _isProcessing = false;
 
   @override
+  void dispose() {
+    cameraController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan Custom QR'),
+        title: const Text('Scan Session QR'),
         actions: [
-          IconButton(
-            color: Colors.white,
-            icon: ValueListenableBuilder(
-              valueListenable: cameraController.torchState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off, color: Colors.grey);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on, color: Colors.yellow);
-                }
-              },
-            ),
-            iconSize: 32.0,
-            onPressed: () => cameraController.toggleTorch(),
+          ValueListenableBuilder(
+            valueListenable: cameraController,
+            builder: (context, state, child) {
+              return IconButton(
+                color: Colors.white,
+                icon: Icon(
+                  state.torchState == TorchState.on ? Icons.flash_on : Icons.flash_off,
+                  color: state.torchState == TorchState.on ? Colors.yellow : Colors.grey,
+                ),
+                onPressed: () => cameraController.toggleTorch(),
+              );
+            },
           ),
-          IconButton(
-            color: Colors.white,
-            icon: ValueListenableBuilder(
-              valueListenable: cameraController.cameraFacingState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
-                }
-              },
-            ),
-            iconSize: 32.0,
-            onPressed: () => cameraController.switchCamera(),
+          ValueListenableBuilder(
+            valueListenable: cameraController,
+            builder: (context, state, child) {
+              return IconButton(
+                color: Colors.white,
+                icon: Icon(
+                  state.cameraDirection == CameraFacing.front ? Icons.camera_front : Icons.camera_rear,
+                ),
+                onPressed: () => cameraController.switchCamera(),
+              );
+            },
           ),
         ],
       ),
