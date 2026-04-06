@@ -31,6 +31,7 @@ class AttendanceSession {
   final String id;
   final String courseName;
   final String instructorId;
+  final String sessionCode; // 6-digit code for manual entry
   final DateTime startTime;
   final DateTime endTime;
   final double lat;
@@ -41,6 +42,7 @@ class AttendanceSession {
     required this.id,
     required this.courseName,
     required this.instructorId,
+    required this.sessionCode,
     required this.startTime,
     required this.endTime,
     required this.lat,
@@ -53,6 +55,7 @@ class AttendanceSession {
       id: json['id'],
       courseName: json['courseName'],
       instructorId: json['instructorId'],
+      sessionCode: json['sessionCode'] ?? '',
       startTime: DateTime.parse(json['startTime']),
       endTime: DateTime.parse(json['endTime']),
       lat: json['lat'],
@@ -66,6 +69,7 @@ class AttendanceSession {
       'id': id,
       'courseName': courseName,
       'instructorId': instructorId,
+      'sessionCode': sessionCode,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
       'lat': lat,

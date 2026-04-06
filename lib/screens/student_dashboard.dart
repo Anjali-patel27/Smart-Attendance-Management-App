@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import 'login_screen.dart';
 import 'qr_scanner_screen.dart';
+import 'manual_code_screen.dart';
 
 class StudentDashboard extends StatelessWidget {
   @override
@@ -33,6 +34,18 @@ class StudentDashboard extends StatelessWidget {
               _buildUserHeader(user?.name ?? 'Student'),
               const SizedBox(height: 25),
               _buildMainActionCard(context),
+              const SizedBox(height: 15),
+              OutlinedButton.icon(
+                onPressed: () {
+                   Navigator.push(context, MaterialPageRoute(builder: (_) => ManualCodeScreen()));
+                },
+                icon: const Icon(Icons.keyboard),
+                label: const Text('Enter Code Manually', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
               const SizedBox(height: 25),
               _buildStatusCard(provider),
               const SizedBox(height: 20),

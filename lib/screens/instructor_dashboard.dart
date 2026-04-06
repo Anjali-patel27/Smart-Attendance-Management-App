@@ -149,7 +149,13 @@ class InstructorDashboard extends StatelessWidget {
                       ),
                     ),
                     title: Text(session.courseName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Expires: ${session.endTime.hour}:${session.endTime.minute} | Limit: ${session.radius}m'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('CODE: ${session.sessionCode}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        Text('Expires: ${session.endTime.hour}:${session.endTime.minute} | Limit: ${session.radius}m'),
+                      ],
+                    ),
                     trailing: isValid 
                     ? IconButton(
                       icon: const Icon(Icons.qr_code_2, color: Colors.blueAccent, size: 30),

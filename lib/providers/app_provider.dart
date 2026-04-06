@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
@@ -41,10 +42,15 @@ class AppProvider extends ChangeNotifier {
   void createSession(String courseName, int durationMinutes, double lat, double lng, double radius) {
     if (_currentUser?.role != 'instructor') return;
     
+    // Generate 6-digit random code
+    final rnd = math.Random();
+    String code = (rnd.nextInt(900000) + 100000).toString();
+
     final newSession = AttendanceSession(
       id: const Uuid().v4(),
       courseName: courseName,
       instructorId: _currentUser!.id,
+      sessionCode: code,
       startTime: DateTime.now(),
       endTime: DateTime.now().add(Duration(minutes: durationMinutes)),
       lat: lat,
@@ -57,11 +63,27 @@ class AppProvider extends ChangeNotifier {
 
   // Student methods
   Future<String> markAttendance(AttendanceSession session) async {
+    return _processAttendance(session);
+  }
+
+  Future<String> markAttendanceByCode(String code) async {
     if (_currentUser?.role != 'student') return "User not a student";
     
+    // In-memory search for test. In real life we would hit a DB.
+    final session = _sessions.firstWhere(
+      (s) => s.sessionCode == code,
+      orElse: () => throw Exception('Session not found'),
+    );
+    
     if (!session.isValid) {
-      return "Session expired";
+      return "Session has expired";
     }
+
+    return _processAttendance(session);
+  }
+
+  Future<String> _processAttendance(AttendanceSession session) async {
+    if (_currentUser == null) return "No user logged in";
 
     final pos = await _locationService.getCurrentLocation();
     if (pos == null) {
@@ -88,9 +110,9 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
 
     if (isFraudulent) {
-      return "Attendance marked, but flagged as fraudulent (out of range: ${distance.toStringAsFixed(2)}m)";
+      return "SUCCESS: Record saved, but flagged as proxy attendance (too far: ${distance.toStringAsFixed(1)}m)";
     }
-    return "Attendance marked successfully";
+    return "SUCCESS: Attendance marked correctly";
   }
 
   // Admin / Sync methods
