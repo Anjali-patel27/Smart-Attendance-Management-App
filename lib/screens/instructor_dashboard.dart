@@ -18,21 +18,17 @@ class InstructorDashboard extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Instructor : ${user?.name}'),
+        title: const Text('EduTrack: Instructor', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.analytics),
+            icon: const Icon(Icons.analytics_outlined),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
             },
             tooltip: 'View Reports',
-          ),
-          IconButton(
-            icon: const Icon(Icons.sync),
-            onPressed: () async {
-              await provider.syncRecords();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syncing done.')));
-            },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -43,61 +39,126 @@ class InstructorDashboard extends StatelessWidget {
           )
         ],
       ),
-      body: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            // Tablet/Desktop Horizontal
+            return Row(
+              children: [
+                SizedBox(width: 350, child: _buildCreationPanel(context, provider)),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildSessionHistory(context, provider)),
+              ],
+            );
+          } else {
+            // Mobile Vertical
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Create Session', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  TextField(controller: _courseController, decoration: const InputDecoration(labelText: 'Course Name')),
-                  TextField(controller: _durationController, decoration: const InputDecoration(labelText: 'Duration (mins)'), keyboardType: TextInputType.number),
-                  TextField(controller: _radiusController, decoration: const InputDecoration(labelText: 'Allowed Radius (m)'), keyboardType: TextInputType.number),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (_courseController.text.trim().isEmpty) return;
-                      final locService = LocationService();
-                      final pos = await locService.getCurrentLocation();
-                      if (pos == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not get location.')));
-                        return;
-                      }
-
-                      provider.createSession(
-                        _courseController.text,
-                        int.tryParse(_durationController.text) ?? 15,
-                        pos.latitude,
-                        pos.longitude,
-                        double.tryParse(_radiusController.text) ?? 50.0,
-                      );
-                      _courseController.clear();
-                    },
-                    child: const Text('Generate Session & QR'),
-                  )
+                  _buildCreationPanel(context, provider),
+                  const Divider(),
+                  SizedBox(height: 400, child: _buildSessionHistory(context, provider)),
                 ],
               ),
-            ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildCreationPanel(BuildContext context, AppProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('New Attendance Session', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _courseController, 
+            decoration: const InputDecoration(labelText: 'Course Name', prefixIcon: Icon(Icons.class_)),
           ),
-          const VerticalDivider(),
+          const SizedBox(height: 15),
+          TextField(
+            controller: _durationController, 
+            decoration: const InputDecoration(labelText: 'Duration (minutes)', prefixIcon: Icon(Icons.timer)),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 15),
+          TextField(
+            controller: _radiusController, 
+            decoration: const InputDecoration(labelText: 'Distance Limit (m)', prefixIcon: Icon(Icons.gps_fixed)),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 25),
+          ElevatedButton(
+            onPressed: () async {
+              if (_courseController.text.trim().isEmpty) {
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a course name')));
+                return;
+              }
+              final locService = LocationService();
+              final pos = await locService.getCurrentLocation();
+              if (pos == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not capture GPS location.')));
+                return;
+              }
+
+              provider.createSession(
+                _courseController.text,
+                int.tryParse(_durationController.text) ?? 15,
+                pos.latitude,
+                pos.longitude,
+                double.tryParse(_radiusController.text) ?? 50.0,
+              );
+              _courseController.clear();
+            },
+            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 55)),
+            child: const Text('Generate Token & QR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSessionHistory(BuildContext context, AppProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Active & Recent Sessions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          const SizedBox(height: 15),
           Expanded(
-            flex: 2,
-            child: ListView.builder(
+            child: provider.sessions.isEmpty 
+              ? const Center(child: Text('No attendance tokens generated yet.', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
               itemCount: provider.sessions.length,
               itemBuilder: (context, index) {
-                final session = provider.sessions[index];
-                return ListTile(
-                  title: Text(session.courseName),
-                  subtitle: Text('Expires: ${session.endTime} | Validity: ${session.isValid}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.qr_code, color: Colors.blue),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => QRGeneratorScreen(session: session)));
-                    },
+                final session = provider.sessions[provider.sessions.length - 1 - index];
+                final isValid = session.isValid;
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isValid ? Colors.green[100] : Colors.red[100],
+                      child: Icon(
+                        isValid ? Icons.online_prediction : Icons.timer_off_outlined, 
+                        color: isValid ? Colors.green[800] : Colors.red[800],
+                      ),
+                    ),
+                    title: Text(session.courseName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('Expires: ${session.endTime.hour}:${session.endTime.minute} | Limit: ${session.radius}m'),
+                    trailing: isValid 
+                    ? IconButton(
+                      icon: const Icon(Icons.qr_code_2, color: Colors.blueAccent, size: 30),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => QRGeneratorScreen(session: session)));
+                      },
+                      tooltip: 'View QR',
+                    )
+                    : const Text('EXPIRED', style: TextStyle(fontSize: 10, color: Colors.red)),
                   ),
                 );
               },

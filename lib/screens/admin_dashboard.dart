@@ -17,47 +17,70 @@ class AdminDashboard extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard & Analytics'),
-        backgroundColor: Colors.indigo,
+        title: const Text('Attendance Audit & Insights', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.indigo[900],
+        foregroundColor: Colors.white,
+        centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatCard('Total', totalAttendance.toString(), Colors.blue),
-                _buildStatCard('Fraudulent', fraudulentCount.toString(), Colors.red),
-                _buildStatCard('Synced', syncedCount.toString(), Colors.green),
+                Expanded(child: _buildStatCard('TOTAL REG.', totalAttendance.toString(), Colors.blue[800]!)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatCard('FRAUD DETECTED', fraudulentCount.toString(), Colors.red[800]!)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatCard('CLOUD SYNCED', syncedCount.toString(), Colors.green[800]!)),
               ],
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Attendance Records / Audit Trail',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 25),
+            Row(
+              children: [
+                const Icon(Icons.list_alt, size: 20, color: Colors.blueGrey),
+                const SizedBox(width: 10),
+                const Text('DETAILED AUDIT LOG', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Colors.blueGrey)),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () {}, 
+                  icon: const Icon(Icons.download, size: 16), 
+                  label: const Text('EXPORT', style: TextStyle(fontSize: 12))
+                ),
+              ],
             ),
             const Divider(),
             Expanded(
-              child: ListView.builder(
+              child: records.isEmpty 
+              ? const Center(child: Text('No attendance events to report.', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
                 itemCount: records.length,
                 itemBuilder: (context, index) {
-                  final record = records[index];
+                  final record = records[records.length - 1 - index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
+                    elevation: 1,
+                    margin: const EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
-                      leading: Icon(
-                        record.isFraudulent ? Icons.warning : Icons.check_circle,
-                        color: record.isFraudulent ? Colors.red : Colors.green,
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: record.isFraudulent ? Colors.red[50] : Colors.green[50],
+                        child: Icon(
+                          record.isFraudulent ? Icons.security : Icons.person,
+                          color: record.isFraudulent ? Colors.red : Colors.green,
+                          size: 18,
+                        ),
                       ),
-                      title: Text('${record.studentName} (${record.studentId})'),
-                      subtitle: Text(
-                        'Session: ${record.sessionId.substring(0, 8)}...\n'
-                        'Time: ${DateFormat('yyyy-MM-dd HH:mm').format(record.timestamp)}',
+                      title: Text('${record.studentName}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('ID: ${record.studentId} | Session: ${record.sessionId.substring(0, 8)}'),
+                          Text(DateFormat('MMM dd, yyyy - HH:mm').format(record.timestamp), style: const TextStyle(fontSize: 11)),
+                        ],
                       ),
                       trailing: record.isSynced 
-                        ? const Icon(Icons.cloud_done, color: Colors.blue) 
-                        : const Icon(Icons.cloud_off, color: Colors.grey),
+                        ? const Icon(Icons.cloud_done, color: Colors.blue, size: 20) 
+                        : const Icon(Icons.cloud_off, color: Colors.grey, size: 20),
                       isThreeLine: true,
                     ),
                   );
@@ -72,16 +95,15 @@ class AdminDashboard extends StatelessWidget {
 
   Widget _buildStatCard(String label, String value, Color color) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Container(
-        padding: const EdgeInsets.all(16),
-        width: 100,
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+            Text(value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 5),
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ],
         ),
       ),
